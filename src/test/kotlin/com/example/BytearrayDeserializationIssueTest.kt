@@ -1,8 +1,12 @@
 package com.example
 
+import com.fasterxml.jackson.databind.node.JsonNodeCreator
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
+import io.micronaut.jackson.core.tree.TreeGenerator
+import io.micronaut.jackson.databind.JacksonDatabindMapper
+import io.micronaut.json.tree.JsonNode
 import io.micronaut.kotlin.http.retrieveObject
 import io.micronaut.runtime.EmbeddedApplication
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -37,6 +41,20 @@ class BytearrayDeserializationIssueTest(
     fun `serialization`() { //this passes
         val response = client.toBlocking().retrieve("/serialization")
         assertEquals("""{"content":"YWJj"}""", response)
+    }
+
+}
+
+@MicronautTest
+class JacksonDatabindMapperTest(
+    private val jacksonDatabindMapper: JacksonDatabindMapper
+) {
+
+    @Test
+    fun test() {
+        val jsonNode = JsonNode.createObjectNode(linkedMapOf("content" to JsonNode.createStringNode("YWJj")))
+        val readValue = jacksonDatabindMapper.readValueFromTree(jsonNode, TestDto::class.java)
+        assertEquals(TestDto(byteArrayOf(97,98,99)), readValue)
     }
 
 }
